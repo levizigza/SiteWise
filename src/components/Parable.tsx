@@ -591,7 +591,7 @@ function Cord({ cut, hooked }: { cut: boolean; hooked: boolean }) {
   return (
     <g>
       <path d="M40 170 C 100 120, 160 190, 220 130" fill="none" stroke={cut ? "var(--danger)" : "var(--ok)"} strokeWidth="6" />
-      {cut && <Tag x="120" y="100" text="COPPER SHOWING" tone="danger" />}
+      {cut && <Tag x={120} y={100} text="COPPER SHOWING" tone="danger" />}
       {hooked && (
         <g transform="translate(300 80)">
           <path d="M20 0v50" stroke="var(--steel)" strokeWidth="4" />
