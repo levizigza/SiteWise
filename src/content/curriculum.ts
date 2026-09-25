@@ -73,6 +73,8 @@ export interface VocabWord {
   meaning: string;
   /** Unit 11 is English-only, matching the poster. */
   englishOnly?: boolean;
+  /** Shown when a learner needs more help. Not required to finish the first ten. */
+  extra?: boolean;
   gloss: Record<LanguageId, Gloss>;
 }
 
@@ -218,6 +220,66 @@ export const VOCAB: VocabWord[] = [
     },
   },
   {
+    id: "stud",
+    unit: 12,
+    en: "Stud",
+    meaning: "The upright piece of wood inside a wall.",
+    extra: true,
+    gloss: {
+      es: { word: "Montante" },
+      fr: { word: "Montant" },
+      ar: { word: "قائم", read: "qa'im" },
+      hi: { word: "स्टड", read: "stad" },
+      am: { word: "ስታድ", read: "stad" },
+      ti: { word: "ስታድ", read: "stad" },
+    },
+  },
+  {
+    id: "header",
+    unit: 13,
+    en: "Header",
+    meaning: "The piece above a door or a window.",
+    extra: true,
+    gloss: {
+      es: { word: "Cargadero" },
+      fr: { word: "Linteau" },
+      ar: { word: "ساكف", read: "sakif" },
+      hi: { word: "हेडर", read: "hedar" },
+      am: { word: "ሄደር", read: "heder" },
+      ti: { word: "ሄደር", read: "heder" },
+    },
+  },
+  {
+    id: "flashing",
+    unit: 14,
+    en: "Flashing",
+    meaning: "The metal that keeps water out.",
+    extra: true,
+    gloss: {
+      es: { word: "Tapajuntas" },
+      fr: { word: "Solin" },
+      ar: { word: "حاجز ماء", read: "hajiz ma" },
+      hi: { word: "फ्लैशिंग", read: "flashing" },
+      am: { word: "ፍላሺንግ", read: "flashing" },
+      ti: { word: "ፍላሺንግ", read: "flashing" },
+    },
+  },
+  {
+    id: "joist",
+    unit: 15,
+    en: "Joist",
+    meaning: "The piece that holds up the floor.",
+    extra: true,
+    gloss: {
+      es: { word: "Vigueta" },
+      fr: { word: "Solive" },
+      ar: { word: "رافدة", read: "rafida" },
+      hi: { word: "जॉइस्ट", read: "joist" },
+      am: { word: "ጆይስት", read: "joist" },
+      ti: { word: "ጆይስት", read: "joist" },
+    },
+  },
+  {
     id: "guard",
     unit: 11,
     en: "Guard",
@@ -234,8 +296,130 @@ export const VOCAB: VocabWord[] = [
   },
 ];
 
-export const SUPPORTED_WORDS = VOCAB.filter((word) => !word.englishOnly);
-export const ENGLISH_WORDS = VOCAB;
+export const SUPPORTED_WORDS = VOCAB.filter((word) => !word.englishOnly && !word.extra);
+export const EXTRA_WORDS = VOCAB.filter((word) => word.extra);
+export const ENGLISH_WORDS = VOCAB.filter((word) => !word.extra);
+
+/** Short meaning in the learner's language, so the idea lands before the English word. */
+const SENSE: Record<string, Record<LanguageId, string>> = {
+  hammer: {
+    es: "Sirve para clavar o sacar clavos.",
+    fr: "Sert à enfoncer ou à retirer des clous.",
+    ar: "تُستخدم لطرق المسامير أو نزعها.",
+    hi: "इससे कील ठोकते या निकालते हैं।",
+    am: "ሚስማር ለመምታት ወይም ለማውጣት ነው።",
+    ti: "ምስማር ንምትካእ ወይ ንምውጻእ እዩ።",
+  },
+  saw: {
+    es: "Corta madera. La guarda se queda puesta.",
+    fr: "Coupe le bois. Le protecteur reste en place.",
+    ar: "تقطع الخشب. الغطاء يبقى في مكانه.",
+    hi: "लकड़ी काटता है। गार्ड लगा रहता है।",
+    am: "እንጨት ይቆርጣል። መከላከያው ይቆያል።",
+    ti: "ዕንጨይቲ ይቖርጽ። መከላኸሊ ይጸንሕ።",
+  },
+  tape: {
+    es: "Mide un largo. No corta.",
+    fr: "Mesure une longueur. Il ne coupe pas.",
+    ar: "تقيس الطول. لا تقطع.",
+    hi: "लंबाई नापता है। काटता नहीं।",
+    am: "ርዝመት ይለካል። አይቆርጥም።",
+    ti: "ንውሓት ይለክዕ። ኣይቖርጽን።",
+  },
+  drill: {
+    es: "Hace un agujero. Revisa el cable o la batería.",
+    fr: "Fait un trou. Vérifiez le fil ou la batterie.",
+    ar: "يصنع ثقبًا. افحص السلك أو البطارية.",
+    hi: "छेद करता है। तार या बैटरी देखें।",
+    am: "ጉድጓድ ይሰራል። ገመድ ወይም ባትሪ ይመልከቱ።",
+    ti: "ጉድጓድ ይሰርሕ። ገመድ ወይ ባትሪ ርኣዩ።",
+  },
+  level: {
+    es: "Muestra si algo está plano o a plomo.",
+    fr: "Montre si quelque chose est de niveau ou d'aplomb.",
+    ar: "يُظهر إن كان الشيء مستويًا.",
+    hi: "बताता है कि चीज़ सीधी है या नहीं।",
+    am: "ነገር ቀጥ ያለ መሆኑን ያሳያል።",
+    ti: "ነገር ቀጥ ዘሎ እንተኾነ የርኢ።",
+  },
+  hardhat: {
+    es: "Protege la cabeza en el trabajo.",
+    fr: "Protège la tête au travail.",
+    ar: "تحمي الرأس في العمل.",
+    hi: "काम पर सिर की सुरक्षा।",
+    am: "በስራ ጭንቅላትን ይጠብቃል።",
+    ti: "ኣብ ስራሕ ርእሲ ይሕልው።",
+  },
+  ladder: {
+    es: "Sirve para subir un poco. No es un andamio.",
+    fr: "Sert à monter un peu. Ce n'est pas un échafaudage.",
+    ar: "للصعود قليلًا. ليست سقالة.",
+    hi: "थोड़ा ऊपर चढ़ने के लिए। यह मचान नहीं है।",
+    am: "ትንሽ ለመውጣት ነው። ስካፎልድ አይደለም።",
+    ti: "ቁሩብ ንምድያብ እዩ። ስካፎልድ ኣይኮነን።",
+  },
+  nail: {
+    es: "Se clava con el martillo.",
+    fr: "On l'enfonce avec le marteau.",
+    ar: "يُدق بالمطرقة.",
+    hi: "इसे हथौड़े से ठोकते हैं।",
+    am: "በመዶሻ ይመታል።",
+    ti: "ብማርተሎ ይትከእ።",
+  },
+  gloves: {
+    es: "Protegen las manos. El algodón no sirve para químicos.",
+    fr: "Protègent les mains. Le coton ne protège pas des produits chimiques.",
+    ar: "تحمي اليدين. القطن لا يحمي من المواد الكيميائية.",
+    hi: "हाथ बचाते हैं। सूती दस्ताने रसायन से नहीं बचाते।",
+    am: "እጅን ይጠብቃል። ጥጥ ከኬሚካል አይከላከልም።",
+    ti: "ኢድ ይሕልው። ጥጥ ካብ ኬሚካል ኣይከላኸልን።",
+  },
+  glasses: {
+    es: "Protegen los ojos. Las gafas de sol no sirven.",
+    fr: "Protègent les yeux. Les lunettes de soleil ne suffisent pas.",
+    ar: "تحمي العينين. نظارات الشمس لا تكفي.",
+    hi: "आँख बचाते हैं। धूप का चश्मा काफी नहीं।",
+    am: "ዓይንን ይጠብቃል። የፀሐይ መነፅር አይበቃም።",
+    ti: "ዓይኒ ይሕልው። መነጸር ጸሓይ ኣይኣክልን።",
+  },
+  stud: {
+    es: "El palo vertical dentro de la pared.",
+    fr: "Le bois vertical dans le mur.",
+    ar: "الخشبة العمودية داخل الجدار.",
+    hi: "दीवार के अंदर खड़ी लकड़ी।",
+    am: "በግድግዳ ውስጥ ቀጥ ያለ እንጨት።",
+    ti: "ኣብ ውሽጢ መንደቕ ዝቆመ ዕንጨይቲ።",
+  },
+  header: {
+    es: "La viga sobre una puerta o una ventana.",
+    fr: "La pièce au-dessus d'une porte ou d'une fenêtre.",
+    ar: "القطعة فوق الباب أو النافذة.",
+    hi: "दरवाज़े या खिड़की के ऊपर की लकड़ी।",
+    am: "በር ወይም መስኮት ላይ ያለው እንጨት።",
+    ti: "ኣብ ላዕሊ ኣፍደገ ወይ መስኮት ዘሎ እንጨይቲ።",
+  },
+  flashing: {
+    es: "El metal que impide que entre el agua.",
+    fr: "Le métal qui empêche l'eau d'entrer.",
+    ar: "المعدن الذي يمنع دخول الماء.",
+    hi: "पानी रोकने वाली धातु।",
+    am: "ውሃ እንዳይገባ የሚከለክል ብረት።",
+    ti: "ማይ ከይኣቱ ዝኽልክል ብረት።",
+  },
+  joist: {
+    es: "La viga que sostiene el piso.",
+    fr: "La pièce qui porte le plancher.",
+    ar: "القطعة التي تحمل الأرضية.",
+    hi: "फर्श को संभालने वाली लकड़ी।",
+    am: "ወለልን የሚሸከም እንጨት።",
+    ti: "ወለል ዝሕዝ እንጨይቲ።",
+  },
+};
+
+export function meaningIn(word: VocabWord, language: LanguageId | null): string | null {
+  if (!language) return null;
+  return SENSE[word.id]?.[language] ?? null;
+}
 
 export interface SentenceItem {
   id: string;

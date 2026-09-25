@@ -256,13 +256,11 @@ export function OnboardingScreen() {
         <p className="kicker">Step {step + 1} of 6</p>
         {step === 0 && (
           <>
-            <h2>Welcome to Purpose Academy.</h2>
-            <p>One platform. Three pathways. This application is the construction stream.</p>
-            <p>
-              You’ll register, choose a supplementary language, name the tools, and then learn the yard: hazards, PPE, WHMIS, and what to do when something goes wrong.
-            </p>
+            <h2>Welcome.</h2>
+            <p>One thing at a time. See a picture. Understand it in your language. Then meet the same idea in English.</p>
+            <p>Construction is the work in this app. Logistics and community support use the same start.</p>
             <p className="muted">
-              Northline Yard is fictional. The lessons are general education, not your employer’s orientation, and not a job placement. Your first week stays on the home screen. The 20-step journey stays open if you want the whole path.
+              Northline Yard is a practice place. The lessons are general education. They are not your employer’s orientation, and they are not a job.
             </p>
           </>
         )}
@@ -369,7 +367,7 @@ export function OnboardingScreen() {
                 progress.setTrade(trade);
                 progress.setPathway(pathway);
                 progress.setLanguage(language);
-                navigate("/journey");
+                navigate("/home");
               }}
             >
               Open the journey
@@ -393,10 +391,10 @@ export function HowItWorks() {
         <p>{PRODUCT.promise} {PRODUCT.platform}</p>
         <p>{PRODUCT.subtitle}</p>
         <p>
-          The construction journey is twenty steps: sign in, register, a baseline, a pathway, a supplementary language, vocabulary, workplace instructions, computer skills, safety, tools and materials, practice, a yard log, an exam, a skills passport, and an employment list you can say out loud. Logistics and Community Support use the same start. Their course units are the next streams.
+          You start with your name, a few pictures, and the work you want. Then a word arrives as a picture, in your language, and in English. You say it again. The English stays when your language steps back. Then a sentence, an instruction, safety, and the work. An instructor watches the hands-on part. Your record lists what you studied and practised. It is not a certificate, and it is not a job.
         </p>
         <p>
-          Every safety subject still follows the same path. The mechanic changes. A quiz is not the whole module. Once you are in, Games lists every activity by name, and Play opens that activity directly.
+          Construction is the stream you can do here. Logistics and community support will use the same path later: picture, your language, English, then the work of that job.
         </p>
         <div className="grid-2">
           {PHASES.map((phase) => (

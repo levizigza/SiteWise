@@ -65,6 +65,10 @@ export interface CurriculumSave {
   units: string[];
   exam: string[];
   logs: SiteLogEntry[];
+  /** Words the learner already understands. Later steps skip them. */
+  known: string[];
+  /** Words the learner asked to see again. They come first. */
+  hard: string[];
 }
 
 export const emptyCurriculum = (): CurriculumSave => ({
@@ -77,6 +81,8 @@ export const emptyCurriculum = (): CurriculumSave => ({
   units: [],
   exam: [],
   logs: [],
+  known: [],
+  hard: [],
 });
 
 function readIdList(value: unknown): string[] {
@@ -108,6 +114,8 @@ function readCurriculum(value: unknown): CurriculumSave {
     units: readIdList(raw.units),
     exam: readIdList(raw.exam),
     logs,
+    known: readIdList(raw.known),
+    hard: readIdList(raw.hard),
   };
 }
 
@@ -274,6 +282,7 @@ interface ProgressApi {
   setLanguage: (language: LanguageId) => void;
   markCurriculum: (bucket: "baseline" | "sentences" | "computer" | "units" | "exam", id: string) => void;
   markVocab: (id: string, stage: VocabStage) => void;
+  noteWord: (id: string, kind: "known" | "again" | "hard") => void;
   addSiteLog: (task: string, note: string) => void;
   toggleEquip: (id: string) => void;
   answerCheck: (id: string, moduleId: string, prompt: string, correct: boolean, feedback: string, dimension: ScoreDimension) => void;
@@ -332,6 +341,42 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             },
           },
         })),
+      noteWord: (id, kind) =>
+        setState((prev) => {
+          const vocab = { ...prev.curriculum.vocab };
+          if (kind === "known") {
+            vocab[id] = { visual: true, supported: true, english: true };
+            return {
+              ...prev,
+              curriculum: {
+                ...prev.curriculum,
+                vocab,
+                known: prev.curriculum.known.includes(id) ? prev.curriculum.known : [...prev.curriculum.known, id],
+                hard: prev.curriculum.hard.filter((item) => item !== id),
+              },
+            };
+          }
+          if (kind === "hard") {
+            return {
+              ...prev,
+              curriculum: {
+                ...prev.curriculum,
+                hard: prev.curriculum.hard.includes(id) ? prev.curriculum.hard : [...prev.curriculum.hard, id],
+                known: prev.curriculum.known.filter((item) => item !== id),
+              },
+            };
+          }
+          delete vocab[id];
+          return {
+            ...prev,
+            curriculum: {
+              ...prev.curriculum,
+              vocab,
+              known: prev.curriculum.known.filter((item) => item !== id),
+              hard: prev.curriculum.hard.includes(id) ? prev.curriculum.hard : [...prev.curriculum.hard, id],
+            },
+          };
+        }),
       addSiteLog: (task, note) =>
         setState((prev) => ({
           ...prev,

@@ -472,8 +472,8 @@ export function Profile() {
   const { state, setJurisdiction, setRole, setTrade, setPathway, setLanguage } = useProgress();
   return (
     <div className="stack">
-      <h2>Profile</h2>
-      <p>Role and province choose which labelled lessons you see. Pathway and language follow the Purpose Academy journey. They do not assign legal requirements or a job.</p>
+      <h2>Your page</h2>
+      <p>Your language stays with the pictures. Your work is the pathway you chose. Neither one is a job offer.</p>
       <label className="field">
         Pathway
         <select
@@ -537,9 +537,10 @@ export function Profile() {
         </select>
       </label>
       <p className="muted">{tradeHint(state.trade)}</p>
-      <Link to="/badges">Badges</Link>
-      <Link to="/resources">Resources</Link>
-      <Link to="/record">Completion record</Link>
+      <Link to="/instructor">For the instructor</Link>
+      <Link to="/games">More practice</Link>
+      <Link to="/training">Safety lessons</Link>
+      <Link to="/record">Your record</Link>
       <Link to="/admin">Admin</Link>
       <Link to="/signin">Sign in</Link>
       <SettingsScreen embedded />

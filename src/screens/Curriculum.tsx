@@ -1,24 +1,27 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { WordPicture } from "../components/WordPicture";
 import {
   BASELINE,
   COMPUTER_TASKS,
-  COURSE_UNITS,
   ENGLISH_WORDS,
   EXAM,
+  EXTRA_WORDS,
   JOURNEY,
   LANGUAGES,
   PATHWAYS,
   SENTENCES,
   SUPPORTED_WORDS,
+  VOCAB,
   journeyDoneCount,
+  meaningIn,
   nextJourneyStep,
   progressBands,
   resumeLines,
   stepDone,
   type CurriculumSnapshot,
-  type LanguageId,
   type PathwayId,
+  type VocabWord,
 } from "../content/curriculum";
 import { DISCLAIMER } from "../content/framework";
 import { useContent } from "../state/content";
@@ -188,123 +191,251 @@ export function BaselinePage() {
 }
 
 export function VocabularyPage() {
-  const { state, setLanguage, markVocab, markCurriculum } = useProgress();
+  const { state, setLanguage, markVocab, markCurriculum, noteWord } = useProgress();
   const [params] = useSearchParams();
   const stage = params.get("stage") ?? "visual";
   const language = LANGUAGES.find((item) => item.id === state.curriculum.language) ?? null;
   const [cursor, setCursor] = useState(0);
-  const [picked, setPicked] = useState("");
+  const [focus, setFocus] = useState<string | null>(null);
+  const [hold, setHold] = useState<string | null>(null);
   const [note, setNote] = useState("");
   useEffect(() => {
     setCursor(0);
-    setPicked("");
+    setFocus(null);
+    setHold(null);
     setNote("");
   }, [stage]);
 
-  const words = stage === "english" ? ENGLISH_WORDS : SUPPORTED_WORDS;
-  const word = words[cursor];
+  const mark = stage === "english" ? "english" : stage === "supported" ? "supported" : "visual";
+  const pool = stage === "english" ? ENGLISH_WORDS : SUPPORTED_WORDS;
+  const waiting = pool
+    .filter((item) => item.id === hold || (!state.curriculum.known.includes(item.id) && !state.curriculum.vocab[item.id]?.[mark]))
+    .sort((a, b) => Number(state.curriculum.hard.includes(b.id)) - Number(state.curriculum.hard.includes(a.id)));
+  const again = EXTRA_WORDS.filter((item) => state.curriculum.hard.includes(item.id) && !state.curriculum.known.includes(item.id));
+  const focused = focus ? VOCAB.filter((item) => item.id === focus) : [];
+  const deck = focused.length ? focused : [...again, ...waiting];
+  const word = deck[Math.min(cursor, Math.max(deck.length - 1, 0))];
+  const showOwnLanguage = stage === "visual" || stage === "supported";
 
   return (
     <div className="stack">
-      <p className="kicker">Steps 6–10 · Workplace language</p>
-      <h2>Vocabulary</h2>
-      <p>
-        Early units show English beside your supplementary language. See it, listen to the English, and say the meaning. The words follow bilingual dictionary headwords. Your instructor confirms the word your crew uses.
-      </p>
-      <label className="field">
-        Supplementary language
-        <select
-          value={state.curriculum.language ?? ""}
-          onChange={(event) => setLanguage(event.target.value as LanguageId)}
-        >
-          <option value="" disabled>
-            Choose one
-          </option>
-          {LANGUAGES.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      <p className="kicker">{stageTitle(stage)}</p>
+      <h2>{stageHeading(stage)}</h2>
+      <p>{stageLine(stage)}</p>
+      {showOwnLanguage && !language && (
+        <div className="stack">
+          <p>Which language do you think in?</p>
+          <div className="row">
+            {LANGUAGES.map((item) => (
+              <button key={item.id} type="button" className="btn btn-ghost" onClick={() => setLanguage(item.id)}>
+                {item.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {showOwnLanguage && language && <p>Your language on this page: {language.name}.</p>}
       <div className="row">
         <Link className={stage === "visual" ? "btn btn-primary" : "btn btn-ghost"} to="/vocabulary?stage=visual">
-          Visual
+          See it
         </Link>
         <Link className={stage === "supported" ? "btn btn-primary" : "btn btn-ghost"} to="/vocabulary?stage=supported">
-          Supported
+          Say it again
         </Link>
         <Link className={stage === "english" ? "btn btn-primary" : "btn btn-ghost"} to="/vocabulary?stage=english">
           English only
         </Link>
         <Link className={stage === "sentences" ? "btn btn-primary" : "btn btn-ghost"} to="/vocabulary?stage=sentences">
-          Sentences
+          A sentence
         </Link>
       </div>
-      {stage !== "sentences" && word && (
+      {stage !== "sentences" && word && (stage === "english" || language) && (
+        <WordBridge
+          word={word}
+          stage={stage}
+          language={language}
+          hard={state.curriculum.hard.includes(word.id)}
+          note={note}
+          onListen={() => listen(word, language, stage !== "english")}
+          onUnderstand={() => {
+            markVocab(word.id, mark === "english" ? "visual" : mark);
+            setFocus(null);
+            setNote("");
+          }}
+          onKnown={() => {
+            noteWord(word.id, "known");
+            setFocus(null);
+            setNote("");
+          }}
+          onAgain={() => {
+            noteWord(word.id, "again");
+            setNote("We will show this picture again.");
+            listen(word, language, true);
+          }}
+          onPick={(correct) => {
+            if (correct) {
+              markVocab(word.id, "english");
+              setHold(word.id);
+              setNote(`${word.en}. ${word.meaning}`);
+            } else {
+              noteWord(word.id, "hard");
+              setNote("Look at the picture again. Then choose the English word.");
+            }
+          }}
+          onContinue={() => {
+            setHold(null);
+            setFocus(null);
+            setNote("");
+          }}
+          held={hold === word.id}
+        />
+      )}
+      {stage !== "sentences" && deck.length === 0 && (
         <article className="panel stack">
-          <p className="kicker">
-            {stage === "english" ? `Unit ${word.unit} of 11` : `Assignment ${word.unit} of 10`}
-          </p>
-          {stage !== "english" && language && word.gloss[language.id].word && (
-            <p className="vocab-gloss" dir={language.dir} lang={language.speech}>
-              {word.gloss[language.id].word}
-              {word.gloss[language.id].read ? <span className="faint"> {word.gloss[language.id].read}</span> : null}
-            </p>
-          )}
-          {stage === "visual" && (
-            <>
-              <h3>{word.en}</h3>
-              <p>{word.meaning}</p>
-              <div className="row">
-                <button type="button" className="btn btn-ghost" onClick={() => speak(word.en, "en-CA")}>
-                  Listen
-                </button>
-                <button type="button" className="btn btn-primary" onClick={() => markVocab(word.id, "visual")}>
-                  {state.curriculum.vocab[word.id]?.visual ? "Seen" : "I can say this"}
-                </button>
-              </div>
-            </>
-          )}
-          {stage !== "visual" && (
-            <>
-              <p>{word.meaning}</p>
-              <p>Which English word is this?</p>
-              {choiceOptions(word.en, words.map((item) => item.en), word.unit).map((label) => (
-                <button
-                  key={label}
-                  type="button"
-                  className="choice"
-                  onClick={() => {
-                    const correct = label === word.en;
-                    setPicked(label);
-                    setNote(correct ? `${word.en}. ${word.meaning}` : "Look at the meaning again, then choose the English word.");
-                    if (correct) markVocab(word.id, stage === "supported" ? "supported" : "english");
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-              {note && <p>{note}</p>}
-            </>
-          )}
-          <div className="row">
-            {cursor > 0 && (
-              <button type="button" className="btn btn-ghost" onClick={() => { setCursor((value) => value - 1); setNote(""); setPicked(""); }}>
-                Previous
-              </button>
-            )}
-            {cursor < words.length - 1 && (stage === "visual" ? state.curriculum.vocab[word.id]?.visual : picked === word.en) && (
-              <button type="button" className="btn btn-primary" onClick={() => { setCursor((value) => value + 1); setNote(""); setPicked(""); }}>
-                Next unit
-              </button>
-            )}
-          </div>
+          <h3>You know these words.</h3>
+          <p>The next step uses them in English, then in a short sentence.</p>
+          <Link className="btn btn-primary" to={stage === "english" ? "/vocabulary?stage=sentences" : stage === "supported" ? "/vocabulary?stage=english" : "/vocabulary?stage=supported"}>
+            Continue
+          </Link>
         </article>
       )}
+      {stage === "visual" && language && (
+        <div className="stack">
+          <h3>Wall words, when you need them</h3>
+          <p>Open one of these when the first words are easy and the wall is not.</p>
+          <div className="row">
+            {EXTRA_WORDS.map((item) => (
+              <button key={item.id} type="button" className="btn btn-ghost" onClick={() => { setFocus(item.id); setCursor(0); setNote(""); }}>
+                {item.en}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {stage === "sentences" && <SentencePractice onMark={(id) => markCurriculum("sentences", id)} done={state.curriculum.sentences} />}
-      <Link to="/journey">Back to the journey</Link>
+      <Link to="/home">Back to your path</Link>
     </div>
+  );
+}
+
+function stageTitle(stage: string) {
+  if (stage === "supported") return "Say it again";
+  if (stage === "english") return "English only";
+  if (stage === "sentences") return "A short sentence";
+  return "See it";
+}
+
+function stageHeading(stage: string) {
+  if (stage === "supported") return "Hear it. Say it.";
+  if (stage === "english") return "The English word stands alone.";
+  if (stage === "sentences") return "Now a whole sentence.";
+  return "Picture first.";
+}
+
+function stageLine(stage: string) {
+  if (stage === "supported") return "Same picture. Same meaning. Say the English after you hear it.";
+  if (stage === "english") return "Your language steps back. The picture stays, so the idea is still there.";
+  if (stage === "sentences") return "One blank. One word you already know.";
+  return "Read the meaning in your language. Then look at the English name for the same thing.";
+}
+
+function listen(word: VocabWord, language: (typeof LANGUAGES)[number] | null, withOwn: boolean) {
+  if (typeof window === "undefined" || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const own = language && withOwn ? word.gloss[language.id].word : "";
+  if (own && language) {
+    const first = new SpeechSynthesisUtterance(own);
+    first.lang = language.speech;
+    const second = new SpeechSynthesisUtterance(word.en);
+    second.lang = "en-CA";
+    first.onend = () => window.speechSynthesis.speak(second);
+    window.speechSynthesis.speak(first);
+    return;
+  }
+  speak(word.en, "en-CA");
+}
+
+function WordBridge({
+  word,
+  stage,
+  language,
+  hard,
+  note,
+  onListen,
+  onUnderstand,
+  onKnown,
+  onAgain,
+  onPick,
+  onContinue,
+  held,
+}: {
+  word: VocabWord;
+  stage: string;
+  language: (typeof LANGUAGES)[number] | null;
+  hard: boolean;
+  note: string;
+  onListen: () => void;
+  onUnderstand: () => void;
+  onKnown: () => void;
+  onAgain: () => void;
+  onPick: (correct: boolean) => void;
+  onContinue: () => void;
+  held: boolean;
+}) {
+  const own = language ? word.gloss[language.id] : null;
+  const sense = meaningIn(word, language?.id ?? null);
+  const choices = choiceOptions(word.en, ENGLISH_WORDS.map((item) => item.en), word.unit);
+  return (
+    <article className="panel stack word-card">
+      <WordPicture id={word.id} />
+      {hard && <p className="kicker">You asked to see this again.</p>}
+      {stage !== "english" && sense && (
+        <p className="vocab-gloss" dir={language?.dir} lang={language?.speech}>
+          {sense}
+        </p>
+      )}
+      {stage !== "english" && own?.word && (
+        <p dir={language?.dir} lang={language?.speech}>
+          <span className="kicker">{language?.name}</span> {own.word}
+          {own.read ? <span className="faint"> {own.read}</span> : null}
+        </p>
+      )}
+      {stage !== "english" && <p className="kicker">English</p>}
+      {stage !== "english" && <h3>{word.en}</h3>}
+      <p>{word.meaning}</p>
+      <button type="button" className="btn btn-ghost" onClick={onListen}>
+        Listen
+      </button>
+      {stage !== "english" && (
+        <div className="row">
+          <button type="button" className="btn btn-primary" onClick={onUnderstand}>
+            {stage === "supported" ? "I said it" : "I understand"}
+          </button>
+          <button type="button" className="btn btn-ghost" onClick={onKnown}>
+            I already know this
+          </button>
+          <button type="button" className="btn btn-ghost" onClick={onAgain}>
+            Show me again
+          </button>
+        </div>
+      )}
+      {stage === "english" && !held && (
+        <div className="stack">
+          <p>Which English word is this?</p>
+          {choices.map((label) => (
+            <button key={label} type="button" className="choice" onClick={() => onPick(label === word.en)}>
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+      {note && <p role="status">{note}</p>}
+      {held && (
+        <button type="button" className="btn btn-primary" onClick={onContinue}>
+          Next
+        </button>
+      )}
+    </article>
   );
 }
 
@@ -325,7 +456,7 @@ function SentencePractice({ onMark, done }: { onMark: (id: string) => void; done
     return (
       <article className="panel stack">
         <h3>Sentences recorded</h3>
-        <p>You used the words in a workplace sentence. The next instruction is on the yard, not on a flashcard.</p>
+        <p>You used the words in a short sentence. Next, follow an instruction.</p>
         <Link className="btn btn-primary" to="/training/orientation">
           Open workplace instructions
         </Link>
@@ -483,7 +614,7 @@ export function ComputerPage() {
       <p>
         Recorded: {done.size} of {COMPUTER_TASKS.length}.
       </p>
-      <Link to="/journey">Back to the journey</Link>
+      <Link to="/home">Back to your path</Link>
     </div>
   );
 }
@@ -491,47 +622,105 @@ export function ComputerPage() {
 export function CoursePage() {
   const { state, markCurriculum } = useProgress();
   const units = new Set(state.curriculum.units);
+  const safetyReady = units.has("safety") || Boolean(state.modules.ppe?.completed);
   return (
     <div className="stack">
-      <p className="kicker">Construction course</p>
-      <h2>Tools, materials, and systems</h2>
-      <p>
-        The program chart lists the same units for a course: identify materials, identify hand tools, identify power tools, safety, exterior work, interior finish, actual practice, assignments, and an exam. Logistics and Community Support will use this shape. This page is the construction version.
-      </p>
-      {COURSE_UNITS.map((unit) => (
-        <article key={unit.id} className="panel stack">
-          <p className="kicker">{units.has(unit.id) ? "Recorded" : "Open"} · {unit.chart}</p>
-          <h3>{unit.title}</h3>
-          <p>{unit.body}</p>
-          {unit.href && (
-            <Link className="btn btn-ghost" to={unit.href}>
-              {unit.linkLabel}
-            </Link>
-          )}
-          {unit.id === "materials" && <UnitCheck id="materials" prompt="Wet cement is on your skin. What do you do?" ok="Wash it off and stop." bad="Wipe it on your pants and keep going." mark={markCurriculum} done={units.has("materials")} />}
-          {unit.id === "hand-tools" && <UnitCheck id="hand-tools" prompt="Someone uses a wrench as a hammer." ok="Stop. Get the hammer. A wrench is not a hammer." bad="It still hits. Keep going." mark={markCurriculum} done={units.has("hand-tools")} />}
-          {unit.id === "power-tools" && <UnitCheck id="power-tools" prompt="A powder-actuated tool is on the bench. You have not been authorized." ok="Leave it. It is not an ordinary drill." bad="It makes holes. Use it carefully." mark={markCurriculum} done={units.has("power-tools")} />}
-          {unit.id === "exterior" && <UnitCheck id="exterior" prompt="The roof edge has no barricade." ok="Stop the approach and report the edge." bad="Walk it. You can see the edge." mark={markCurriculum} done={units.has("exterior")} />}
-          {unit.id === "interior" && <UnitCheck id="interior" prompt="Sanding dust is moving into a finished room." ok="Stop and control the dust before more sanding." bad="Blow it into the hall." mark={markCurriculum} done={units.has("interior")} />}
-          {unit.id === "safety" && (
-            <button type="button" className="btn btn-primary" onClick={() => markCurriculum("units", "safety")}>
-              {units.has("safety") ? "Safety unit recorded" : "I know safety sits inside the modules"}
-            </button>
-          )}
-          {unit.id === "practice" && (
-            <button type="button" className="btn btn-primary" onClick={() => markCurriculum("units", "practice")}>
-              {units.has("practice") ? "Practice unit recorded" : "I know practice here is not instructor sign-off"}
-            </button>
-          )}
-          {unit.id === "assignments" && (
-            <button type="button" className="btn btn-primary" onClick={() => markCurriculum("units", "assignments")}>
-              {units.has("assignments") ? "Assignments unit recorded" : "I know units 1–10 are the vocabulary assignments"}
-            </button>
-          )}
-        </article>
-      ))}
-      <Link to="/journey">Back to the journey</Link>
+      <p className="kicker">The work</p>
+      <h2>Stay whole. Then learn the work.</h2>
+      <p>Safety comes first. After that, each card is one idea: a picture in your mind, a short line, and a choice.</p>
+      <p className="faint">Learned means you saw it here. Practised means you made the choice. Competent means an instructor watched you do it. This page cannot mark that.</p>
+      <article className="panel stack">
+        <h3>Safety</h3>
+        <p>Hat, eyes, hands, feet. Know the hazard before you touch the tool.</p>
+        <Link className="btn btn-primary" to="/training/ppe">Open safety</Link>
+        <button type="button" className="btn btn-ghost" onClick={() => markCurriculum("units", "safety")}>
+          {units.has("safety") ? "Safety is open" : "I have started safety"}
+        </button>
+        <StageLine learned={units.has("safety") || Boolean(state.modules.ppe?.completed)} practised={Boolean(state.modules.ppe?.completed)} />
+      </article>
+      <article className="panel stack">
+        <h3>Measurement</h3>
+        <p>A tape measure marks a length. It does not cut.</p>
+        <UnitCheck id="measurement" prompt="You need the length of a board. What do you use?" ok="The tape measure." bad="My hands. Close enough." mark={markCurriculum} done={units.has("measurement")} />
+        <StageLine learned={units.has("measurement")} practised={units.has("measurement")} />
+      </article>
+      <article className="panel stack">
+        <h3>Construction math</h3>
+        <p>The number on the tape is the number you trust. A guess is not a measurement.</p>
+        <UnitCheck id="math" prompt="The space from one stud to the next is marked 16 inches. What do you do?" ok="Measure 16 inches with the tape." bad="Step it off with my boot." mark={markCurriculum} done={units.has("math")} />
+        <StageLine learned={units.has("math")} practised={units.has("math")} />
+      </article>
+      <article className="panel stack">
+        <h3>Materials</h3>
+        <p>Wet cement stays on skin. It is not ordinary dirt.</p>
+        <UnitCheck id="materials" prompt="Wet cement is on your skin. What do you do?" ok="Wash it off and stop." bad="Wipe it on your pants and keep going." mark={markCurriculum} done={units.has("materials")} />
+        <StageLine learned={units.has("materials")} practised={units.has("materials")} />
+      </article>
+      <article className="panel stack">
+        <h3>Hand tools</h3>
+        <p>A hammer drives a nail. A wrench is not a hammer.</p>
+        {safetyReady ? <Link className="btn btn-ghost" to="/training/tools?play=tools-types">See the kinds of tools</Link> : <p>Finish the safety card first. Then the tools open.</p>}
+        <UnitCheck id="hand-tools" prompt="Someone uses a wrench as a hammer." ok="Stop. Get the hammer. A wrench is not a hammer." bad="It still hits. Keep going." mark={markCurriculum} done={units.has("hand-tools")} />
+        <StageLine learned={units.has("hand-tools")} practised={Boolean(state.modules.tools?.completed)} />
+      </article>
+      <article className="panel stack">
+        <h3>Power tools</h3>
+        <p>A drill makes a hole. A powder-actuated tool is not a drill. Leave it if you are not allowed to use it.</p>
+        <UnitCheck id="power-tools" prompt="A powder-actuated tool is on the bench. You have not been authorized." ok="Leave it. It is not an ordinary drill." bad="It makes holes. Use it carefully." mark={markCurriculum} done={units.has("power-tools")} />
+        <StageLine learned={units.has("power-tools")} practised={Boolean(state.modules.tools?.completed)} />
+      </article>
+      <article className="panel stack">
+        <h3>Equipment</h3>
+        <p>A ladder is for a short reach. A forklift and a crane are someone else’s machine.</p>
+        {safetyReady ? <Link className="btn btn-ghost" to="/training/falls">See ladders and edges</Link> : <p>Finish the safety card first.</p>}
+        <StageLine learned={Boolean(state.modules.falls?.blockDone?.length)} practised={Boolean(state.modules.falls?.completed)} />
+      </article>
+      <article className="panel stack">
+        <h3>Framing</h3>
+        <p>Studs stand in the wall. A header sits over a door or a window.</p>
+        <Link className="btn btn-ghost" to="/vocabulary?stage=visual">See stud and header</Link>
+        <StageLine learned={state.curriculum.vocab.stud?.visual || state.curriculum.vocab.header?.visual || false} practised={false} />
+      </article>
+      <article className="panel stack">
+        <h3>Interior finish</h3>
+        <p>Dust from sanding moves. Keep it where the work is.</p>
+        <UnitCheck id="interior" prompt="Sanding dust is moving into a finished room." ok="Stop and control the dust before more sanding." bad="Blow it into the hall." mark={markCurriculum} done={units.has("interior")} />
+        <StageLine learned={units.has("interior")} practised={units.has("interior")} />
+      </article>
+      <article className="panel stack">
+        <h3>Exterior</h3>
+        <p>A roof edge with nothing across it is a place you do not walk.</p>
+        <UnitCheck id="exterior" prompt="The roof edge has no barricade." ok="Stop the approach and report the edge." bad="Walk it. You can see the edge." mark={markCurriculum} done={units.has("exterior")} />
+        <StageLine learned={units.has("exterior")} practised={units.has("exterior")} />
+      </article>
+      <article className="panel stack">
+        <h3>Electrical</h3>
+        <p>An open panel is not your work unless you are the person allowed to touch it.</p>
+        <UnitCheck id="electrical" prompt="You see an open electrical panel." ok="Stop. Tell the person who is allowed to work on it." bad="Close it yourself and keep going." mark={markCurriculum} done={units.has("electrical")} />
+        <StageLine learned={units.has("electrical")} practised={units.has("electrical")} />
+      </article>
+      <article className="panel stack">
+        <h3>Plumbing</h3>
+        <p>An open pipe can run. You do not open it to see.</p>
+        <UnitCheck id="plumbing" prompt="A pipe joint is open and you were not asked to work on it." ok="Leave it. Tell the person in charge." bad="Turn the valve and see what happens." mark={markCurriculum} done={units.has("plumbing")} />
+        <StageLine learned={units.has("plumbing")} practised={units.has("plumbing")} />
+      </article>
+      <article className="panel stack">
+        <h3>HVAC</h3>
+        <p>A heating or cooling unit is equipment. Looking is not servicing it.</p>
+        <UnitCheck id="hvac" prompt="A unit is running and making a new noise." ok="Stop and tell the person in charge. Do not open the unit." bad="Take the cover off and look inside." mark={markCurriculum} done={units.has("hvac")} />
+        <StageLine learned={units.has("hvac")} practised={units.has("hvac")} />
+      </article>
+      <Link to="/home">Back to your path</Link>
     </div>
+  );
+}
+
+function StageLine({ learned, practised }: { learned: boolean; practised: boolean }) {
+  return (
+    <p className="faint">
+      Learned: {learned ? "yes" : "not yet"}. Practised: {practised ? "yes" : "not yet"}. Competent: an instructor verifies this with you.
+    </p>
   );
 }
 
@@ -656,7 +845,7 @@ export function SiteLogPage() {
           <p>{entry.note}</p>
         </article>
       ))}
-      <Link to="/journey">Back to the journey</Link>
+      <Link to="/home">Back to your path</Link>
     </div>
   );
 }
@@ -701,7 +890,12 @@ export function InstructorPage() {
         This is the instructor reading of the learner on this device: progress, gaps, the practice log, and what is not yet verified in person. A class list of many students is the admin desk. Hands-on verification is still a person’s signature, not a button here.
       </p>
       <ProgressBands snap={snap} />
-      <h3>Learning gaps</h3>
+      <h3>Words to see again</h3>
+      {state.curriculum.hard.length === 0 && <p>No word has been marked for another look.</p>}
+      {state.curriculum.hard.map((id) => (
+        <p key={id}>{VOCAB.find((word) => word.id === id)?.en ?? id}</p>
+      ))}
+      <h3>Where to help</h3>
       {weak.length === 0 && <p>No band is under 70% yet, or the record is still empty. Empty is a gap.</p>}
       {weak.map((band) => (
         <p key={band.id}>

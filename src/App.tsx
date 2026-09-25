@@ -5,7 +5,8 @@ import { ModulePlayer } from "./components/ModulePlayer";
 import { HowItWorks, LoadingScreen, OnboardingScreen, SettingsScreen, TitleScreen } from "./screens/Gate";
 import { SoundToggle } from "./components/SoundToggle";
 import { AdminScreen, SignInScreen } from "./screens/Admin";
-import { BadgesPage, BossPage, Dashboard, GamesPage, Missions, Profile, ProgressPage, Resources, TrainingMap } from "./screens/Hub";
+import { BadgesPage, BossPage, GamesPage, Missions, Profile, ProgressPage, Resources, TrainingMap } from "./screens/Hub";
+import { PathPage } from "./screens/Path";
 import {
   BaselinePage,
   ComputerPage,
@@ -27,7 +28,7 @@ function CrewRoutes() {
   return (
     <Routes>
       <Route element={<Shell />}>
-        <Route path="/home" element={<Dashboard />} />
+        <Route path="/home" element={<PathPage />} />
         <Route path="/journey" element={<JourneyPage />} />
         <Route path="/vocabulary" element={<VocabularyPage />} />
         <Route path="/baseline" element={<BaselinePage />} />
