@@ -173,7 +173,14 @@ export function LockerPage() {
         <button type="button" className="btn btn-primary" onClick={startCut}>
           Start the cut
         </button>
-        {cutNote && <Feedback text={cutNote} good={cutOk} review={cutNote === CONCRETE_CUT.respiratorNote ? "Respiratory protection" : "PPE selection"} />}
+        {cutNote && (
+          <Feedback
+            text={cutNote}
+            good={cutOk}
+            scene={cutNote === CONCRETE_CUT.respiratorNote ? "respirator" : "concrete-kit"}
+            review={cutNote === CONCRETE_CUT.respiratorNote ? "Respiratory protection" : "PPE selection"}
+          />
+        )}
       </article>
       <div className="grid-2">
         {(["PPE", "Tools"] as const).map((group) => (

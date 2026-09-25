@@ -28,6 +28,7 @@ import { SceneBoard, hintFor } from "./SceneBoard";
 import { SimLab } from "./SimLab";
 import { LadderSim } from "./LadderSim";
 import { Avatar } from "./Avatar";
+import type { ParableId } from "../content/parables";
 import { TeachText } from "./Parable";
 
 export function useFirstScore(onAnswer: (event: AnswerEvent) => void) {
@@ -39,11 +40,11 @@ export function useFirstScore(onAnswer: (event: AnswerEvent) => void) {
   };
 }
 
-export function Feedback({ text, good, review }: { text: string; good?: boolean; review?: string }) {
+export function Feedback({ text, good, review, scene }: { text: string; good?: boolean; review?: string; scene?: ParableId }) {
   return (
     <div className={good ? "feedback good" : "feedback bad"} role="status">
       <strong>{good ? "Good call." : "Not quite."}</strong>
-      <TeachText text={text} />
+      <TeachText text={text} scene={scene} />
       {!good && (
         <>
           <p>
