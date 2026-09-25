@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { ObjectPhoto, hasPhoto } from "../components/ObjectPhoto";
 import { SceneArt, WordPicture } from "../components/WordPicture";
 import {
   BASELINE,
@@ -167,8 +168,7 @@ export function BaselinePage() {
     <div className="stack">
       <p className="kicker">Step 3 · Baseline · {index + 1} of {BASELINE.length}</p>
       <h2>What is this?</h2>
-      <WordPicture id={item.id === "hat" ? "hardhat" : item.id} />
-      <p>{item.prompt}</p>
+      <ObjectPhoto id={item.id === "hat" ? "hardhat" : item.id} />
       {item.options.map((option) => (
         <button
           key={option.id}
@@ -242,7 +242,7 @@ export function VocabularyPage() {
           See it
         </Link>
         <Link className={stage === "supported" ? "btn btn-primary" : "btn btn-ghost"} to="/vocabulary?stage=supported">
-          Say it again
+          Homework
         </Link>
         <Link className={stage === "english" ? "btn btn-primary" : "btn btn-ghost"} to="/vocabulary?stage=english">
           English only
@@ -276,9 +276,9 @@ export function VocabularyPage() {
           }}
           onPick={(correct) => {
             if (correct) {
-              markVocab(word.id, "english");
+              markVocab(word.id, stage === "supported" ? "supported" : "english");
               setHold(word.id);
-              setNote(`${word.en}. ${word.meaning}`);
+              setNote(stage === "supported" ? `${word.en}. That match is homework. The practice stays in class with your instructor.` : `${word.en}. ${word.meaning}`);
             } else {
               noteWord(word.id, "hard");
               setNote("Look at the picture again. Then choose the English word.");
@@ -321,21 +321,21 @@ export function VocabularyPage() {
 }
 
 function stageTitle(stage: string) {
-  if (stage === "supported") return "Say it again";
+  if (stage === "supported") return "Step 8 · Homework";
   if (stage === "english") return "English only";
   if (stage === "sentences") return "A short sentence";
   return "See it";
 }
 
 function stageHeading(stage: string) {
-  if (stage === "supported") return "Hear it. Say it.";
+  if (stage === "supported") return "Match the word to the picture.";
   if (stage === "english") return "The English word stands alone.";
   if (stage === "sentences") return "Now a whole sentence.";
   return "Picture first.";
 }
 
 function stageLine(stage: string) {
-  if (stage === "supported") return "Same picture. Same meaning. Say the English after you hear it.";
+  if (stage === "supported") return "The practice is in class, with your instructor. These units are the homework beside that class.";
   if (stage === "english") return "Your language steps back. The picture stays, so the idea is still there.";
   if (stage === "sentences") return "One blank. One word you already know.";
   return "Read the meaning in your language. Then look at the English name for the same thing.";
@@ -389,7 +389,8 @@ function WordBridge({
   const choices = choiceOptions(word.en, ENGLISH_WORDS.map((item) => item.en), word.unit);
   return (
     <article className="panel stack word-card">
-      <WordPicture id={word.id} />
+      <ObjectPhoto id={word.id} />
+      {!hasPhoto(word.id) && <WordPicture id={word.id} />}
       {hard && <p className="kicker">You asked to see this again.</p>}
       {stage !== "english" && sense && (
         <p className="vocab-gloss" dir={language?.dir} lang={language?.speech}>
@@ -402,16 +403,16 @@ function WordBridge({
           {own.read ? <span className="faint"> {own.read}</span> : null}
         </p>
       )}
-      {stage !== "english" && <p className="kicker">English</p>}
-      {stage !== "english" && <h3>{word.en}</h3>}
-      <p>{word.meaning}</p>
+      {stage === "visual" && <p className="kicker">English</p>}
+      {stage === "visual" && <h3>{word.en}</h3>}
+      {stage === "visual" && <p>{word.meaning}</p>}
       <button type="button" className="btn btn-ghost" onClick={onListen}>
         Listen
       </button>
-      {stage !== "english" && (
+      {stage === "visual" && (
         <div className="row">
           <button type="button" className="btn btn-primary" onClick={onUnderstand}>
-            {stage === "supported" ? "I said it" : "I understand"}
+            I understand
           </button>
           <button type="button" className="btn btn-ghost" onClick={onKnown}>
             I already know this
@@ -421,9 +422,9 @@ function WordBridge({
           </button>
         </div>
       )}
-      {stage === "english" && !held && (
+      {(stage === "english" || stage === "supported") && !held && (
         <div className="stack">
-          <p>Which English word is this?</p>
+          <p>{stage === "supported" ? "Match the word to the picture." : "Which English word is this?"}</p>
           {choices.map((label) => (
             <button key={label} type="button" className="choice" onClick={() => onPick(label === word.en)}>
               {label}
@@ -468,7 +469,7 @@ function SentencePractice({ onMark, done }: { onMark: (id: string) => void; done
   return (
     <article className="panel stack">
       <p className="kicker">Sentence {index + 1} of {SENTENCES.length}</p>
-      <WordPicture id={item.answer === "tape measure" ? "tape" : item.answer === "hard hat" ? "hardhat" : item.answer} />
+      <ObjectPhoto id={item.answer === "tape measure" ? "tape" : item.answer === "hard hat" ? "hardhat" : item.answer} />
       <h3>{item.prompt}</h3>
       {item.options.map((option) => (
         <button
@@ -645,7 +646,7 @@ export function CoursePage() {
       </article>
       <article className="panel stack">
         <h3>Measurement</h3>
-        <SceneArt id="measurement" />
+        <ObjectPhoto id="tape" />
         <p>A tape measure marks a length. It does not cut.</p>
         <UnitCheck id="measurement" prompt="You need the length of a board. What do you use?" ok="The tape measure." bad="My hands. Close enough." mark={markCurriculum} done={units.has("measurement")} />
         <StageLine learned={units.has("measurement")} practised={units.has("measurement")} />
@@ -666,7 +667,7 @@ export function CoursePage() {
       </article>
       <article className="panel stack">
         <h3>Hand tools</h3>
-        <SceneArt id="hand-tools" />
+        <ObjectPhoto id="hammer" />
         <p>A hammer drives a nail. A wrench is not a hammer.</p>
         {safetyReady ? <Link className="btn btn-ghost" to="/training/tools?play=tools-types">See the kinds of tools</Link> : <p>Finish the safety card first. Then the tools open.</p>}
         <UnitCheck id="hand-tools" prompt="Someone uses a wrench as a hammer." ok="Stop. Get the hammer. A wrench is not a hammer." bad="It still hits. Keep going." mark={markCurriculum} done={units.has("hand-tools")} />
@@ -674,14 +675,14 @@ export function CoursePage() {
       </article>
       <article className="panel stack">
         <h3>Power tools</h3>
-        <SceneArt id="power-tools" />
+        <ObjectPhoto id="drill" />
         <p>A drill makes a hole. A powder-actuated tool is not a drill. Leave it if you are not allowed to use it.</p>
         <UnitCheck id="power-tools" prompt="A powder-actuated tool is on the bench. You have not been authorized." ok="Leave it. It is not an ordinary drill." bad="It makes holes. Use it carefully." mark={markCurriculum} done={units.has("power-tools")} />
         <StageLine learned={units.has("power-tools")} practised={Boolean(state.modules.tools?.completed)} />
       </article>
       <article className="panel stack">
         <h3>Equipment</h3>
-        <SceneArt id="equipment" />
+        <ObjectPhoto id="ladder" />
         <p>A ladder is for a short reach. A forklift and a crane are someone else’s machine.</p>
         {safetyReady ? <Link className="btn btn-ghost" to="/training/falls">See ladders and edges</Link> : <p>Finish the safety card first.</p>}
         <StageLine learned={Boolean(state.modules.falls?.blockDone?.length)} practised={Boolean(state.modules.falls?.completed)} />

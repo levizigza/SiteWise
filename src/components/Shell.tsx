@@ -2,7 +2,7 @@ import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { PRODUCT } from "../content/framework";
 
 const NAV = [
-  ["Path", "/home"],
+  ["Journey", "/home"],
   ["Words", "/vocabulary"],
   ["Work", "/course"],
   ["Passport", "/record"],
