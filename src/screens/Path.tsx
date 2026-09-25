@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import { CrewSite } from "../components/CrewSite";
+import { SceneArt } from "../components/WordPicture";
 import { BASELINE, COMPUTER_TASKS, ENGLISH_WORDS, EXAM, LANGUAGES, PATHWAYS, SENTENCES, SUPPORTED_WORDS } from "../content/curriculum";
 import { useCurriculumSnap } from "./Curriculum";
 import { useProgress } from "../state/progress";
@@ -20,8 +22,10 @@ export function PathPage() {
     <div className="stack">
       <p className="kicker">Purpose Academy</p>
       <h2>One thing at a time.</h2>
+      <CrewSite />
       <p>See it. Understand it in your language. Then meet the same idea in English.</p>
       <article className="panel stack path-now">
+        <SceneArt id={now.id} />
         <p className="kicker">Do this now</p>
         <h3>{now.title}</h3>
         <p>{now.line}</p>
@@ -33,6 +37,7 @@ export function PathPage() {
         {steps.map((step, index) => (
           <li key={step.id} className={step.done ? "done" : step.id === now.id ? "now" : undefined}>
             <Link to={step.href}>
+              <SceneArt id={step.id} compact />
               <span>{index + 1}</span>
               <strong>{step.title}</strong>
             </Link>

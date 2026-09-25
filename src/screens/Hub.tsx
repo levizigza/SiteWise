@@ -8,6 +8,7 @@ import { SAFETY_CHECKS } from "../content/checks";
 import { readinessLabel, siteReadiness } from "../content/mastery";
 import { tradeHint, tradeTitle, TRADES, type Trade } from "../content/trades";
 import { Avatar } from "../components/Avatar";
+import { SceneArt } from "../components/WordPicture";
 import { CrewSite } from "../components/CrewSite";
 import { ExitBar } from "../components/ExitBar";
 import { TeachText } from "../components/Parable";
@@ -473,6 +474,7 @@ export function Profile() {
   return (
     <div className="stack">
       <h2>Your page</h2>
+      <SceneArt id="start" />
       <p>Your language stays with the pictures. Your work is the pathway you chose. Neither one is a job offer.</p>
       <label className="field">
         Pathway

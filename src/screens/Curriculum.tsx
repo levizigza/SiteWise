@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { WordPicture } from "../components/WordPicture";
+import { SceneArt, WordPicture } from "../components/WordPicture";
 import {
   BASELINE,
   COMPUTER_TASKS,
@@ -105,6 +105,7 @@ export function JourneyPage() {
     <div className="stack">
       <p className="kicker">Purpose Academy</p>
       <h2>The 20-step student journey</h2>
+      <SceneArt id="work" />
       <p>
         One platform. Three pathways. Real opportunities start with skills you can name. This application delivers the construction stream and the shared start every pathway uses.
       </p>
@@ -166,6 +167,7 @@ export function BaselinePage() {
     <div className="stack">
       <p className="kicker">Step 3 · Baseline · {index + 1} of {BASELINE.length}</p>
       <h2>What is this?</h2>
+      <WordPicture id={item.id === "hat" ? "hardhat" : item.id} />
       <p>{item.prompt}</p>
       {item.options.map((option) => (
         <button
@@ -466,6 +468,7 @@ function SentencePractice({ onMark, done }: { onMark: (id: string) => void; done
   return (
     <article className="panel stack">
       <p className="kicker">Sentence {index + 1} of {SENTENCES.length}</p>
+      <WordPicture id={item.answer === "tape measure" ? "tape" : item.answer === "hard hat" ? "hardhat" : item.answer} />
       <h3>{item.prompt}</h3>
       {item.options.map((option) => (
         <button
@@ -502,6 +505,7 @@ export function ComputerPage() {
     <div className="stack">
       <p className="kicker">Step 12 · Basic computer skills</p>
       <h2>Five skills for this program</h2>
+      <SceneArt id="computer" />
       <p>You are already in a browser. These five are the computer skills the journey asks for. Finishing them does not make you the site’s computer person.</p>
       <article className="panel stack">
         <h3>1. {COMPUTER_TASKS[0].title}</h3>
@@ -631,6 +635,7 @@ export function CoursePage() {
       <p className="faint">Learned means you saw it here. Practised means you made the choice. Competent means an instructor watched you do it. This page cannot mark that.</p>
       <article className="panel stack">
         <h3>Safety</h3>
+        <SceneArt id="safety" />
         <p>Hat, eyes, hands, feet. Know the hazard before you touch the tool.</p>
         <Link className="btn btn-primary" to="/training/ppe">Open safety</Link>
         <button type="button" className="btn btn-ghost" onClick={() => markCurriculum("units", "safety")}>
@@ -640,24 +645,28 @@ export function CoursePage() {
       </article>
       <article className="panel stack">
         <h3>Measurement</h3>
+        <SceneArt id="measurement" />
         <p>A tape measure marks a length. It does not cut.</p>
         <UnitCheck id="measurement" prompt="You need the length of a board. What do you use?" ok="The tape measure." bad="My hands. Close enough." mark={markCurriculum} done={units.has("measurement")} />
         <StageLine learned={units.has("measurement")} practised={units.has("measurement")} />
       </article>
       <article className="panel stack">
         <h3>Construction math</h3>
+        <SceneArt id="math" />
         <p>The number on the tape is the number you trust. A guess is not a measurement.</p>
         <UnitCheck id="math" prompt="The space from one stud to the next is marked 16 inches. What do you do?" ok="Measure 16 inches with the tape." bad="Step it off with my boot." mark={markCurriculum} done={units.has("math")} />
         <StageLine learned={units.has("math")} practised={units.has("math")} />
       </article>
       <article className="panel stack">
         <h3>Materials</h3>
+        <SceneArt id="materials" />
         <p>Wet cement stays on skin. It is not ordinary dirt.</p>
         <UnitCheck id="materials" prompt="Wet cement is on your skin. What do you do?" ok="Wash it off and stop." bad="Wipe it on your pants and keep going." mark={markCurriculum} done={units.has("materials")} />
         <StageLine learned={units.has("materials")} practised={units.has("materials")} />
       </article>
       <article className="panel stack">
         <h3>Hand tools</h3>
+        <SceneArt id="hand-tools" />
         <p>A hammer drives a nail. A wrench is not a hammer.</p>
         {safetyReady ? <Link className="btn btn-ghost" to="/training/tools?play=tools-types">See the kinds of tools</Link> : <p>Finish the safety card first. Then the tools open.</p>}
         <UnitCheck id="hand-tools" prompt="Someone uses a wrench as a hammer." ok="Stop. Get the hammer. A wrench is not a hammer." bad="It still hits. Keep going." mark={markCurriculum} done={units.has("hand-tools")} />
@@ -665,48 +674,56 @@ export function CoursePage() {
       </article>
       <article className="panel stack">
         <h3>Power tools</h3>
+        <SceneArt id="power-tools" />
         <p>A drill makes a hole. A powder-actuated tool is not a drill. Leave it if you are not allowed to use it.</p>
         <UnitCheck id="power-tools" prompt="A powder-actuated tool is on the bench. You have not been authorized." ok="Leave it. It is not an ordinary drill." bad="It makes holes. Use it carefully." mark={markCurriculum} done={units.has("power-tools")} />
         <StageLine learned={units.has("power-tools")} practised={Boolean(state.modules.tools?.completed)} />
       </article>
       <article className="panel stack">
         <h3>Equipment</h3>
+        <SceneArt id="equipment" />
         <p>A ladder is for a short reach. A forklift and a crane are someone else’s machine.</p>
         {safetyReady ? <Link className="btn btn-ghost" to="/training/falls">See ladders and edges</Link> : <p>Finish the safety card first.</p>}
         <StageLine learned={Boolean(state.modules.falls?.blockDone?.length)} practised={Boolean(state.modules.falls?.completed)} />
       </article>
       <article className="panel stack">
         <h3>Framing</h3>
+        <SceneArt id="framing" />
         <p>Studs stand in the wall. A header sits over a door or a window.</p>
         <Link className="btn btn-ghost" to="/vocabulary?stage=visual">See stud and header</Link>
         <StageLine learned={state.curriculum.vocab.stud?.visual || state.curriculum.vocab.header?.visual || false} practised={false} />
       </article>
       <article className="panel stack">
         <h3>Interior finish</h3>
+        <SceneArt id="interior" />
         <p>Dust from sanding moves. Keep it where the work is.</p>
         <UnitCheck id="interior" prompt="Sanding dust is moving into a finished room." ok="Stop and control the dust before more sanding." bad="Blow it into the hall." mark={markCurriculum} done={units.has("interior")} />
         <StageLine learned={units.has("interior")} practised={units.has("interior")} />
       </article>
       <article className="panel stack">
         <h3>Exterior</h3>
+        <SceneArt id="exterior" />
         <p>A roof edge with nothing across it is a place you do not walk.</p>
         <UnitCheck id="exterior" prompt="The roof edge has no barricade." ok="Stop the approach and report the edge." bad="Walk it. You can see the edge." mark={markCurriculum} done={units.has("exterior")} />
         <StageLine learned={units.has("exterior")} practised={units.has("exterior")} />
       </article>
       <article className="panel stack">
         <h3>Electrical</h3>
+        <SceneArt id="electrical" />
         <p>An open panel is not your work unless you are the person allowed to touch it.</p>
         <UnitCheck id="electrical" prompt="You see an open electrical panel." ok="Stop. Tell the person who is allowed to work on it." bad="Close it yourself and keep going." mark={markCurriculum} done={units.has("electrical")} />
         <StageLine learned={units.has("electrical")} practised={units.has("electrical")} />
       </article>
       <article className="panel stack">
         <h3>Plumbing</h3>
+        <SceneArt id="plumbing" />
         <p>An open pipe can run. You do not open it to see.</p>
         <UnitCheck id="plumbing" prompt="A pipe joint is open and you were not asked to work on it." ok="Leave it. Tell the person in charge." bad="Turn the valve and see what happens." mark={markCurriculum} done={units.has("plumbing")} />
         <StageLine learned={units.has("plumbing")} practised={units.has("plumbing")} />
       </article>
       <article className="panel stack">
         <h3>HVAC</h3>
+        <SceneArt id="hvac" />
         <p>A heating or cooling unit is equipment. Looking is not servicing it.</p>
         <UnitCheck id="hvac" prompt="A unit is running and making a new noise." ok="Stop and tell the person in charge. Do not open the unit." bad="Take the cover off and look inside." mark={markCurriculum} done={units.has("hvac")} />
         <StageLine learned={units.has("hvac")} practised={units.has("hvac")} />
@@ -783,6 +800,7 @@ export function ExamPage() {
     <div className="stack">
       <p className="kicker">Step 18 · {index + 1} of {EXAM.length}</p>
       <h2>Final assessment</h2>
+      <SceneArt id="check" />
       <p>{item.prompt}</p>
       {item.options.map((option) => (
         <button
@@ -815,6 +833,7 @@ export function SiteLogPage() {
     <div className="stack">
       <p className="kicker">Step 17 · On-site training</p>
       <h2>Practice-yard log</h2>
+      <SceneArt id="site" />
       <p>Write the task and what you would tell a supervisor. This log stays on this device. It is not the employer’s timesheet, and it is not a supervisor’s signature.</p>
       <label className="field">
         Task
@@ -858,6 +877,7 @@ export function EmploymentPage() {
     <div className="stack">
       <p className="kicker">Step 20 · Employment connection</p>
       <h2>From training to a skills list</h2>
+      <SceneArt id="job" />
       <p>
         Employer matching, job placement, and the 30-, 90-, and 180-day follow-up are done with program staff. This page turns what you finished into lines you can say. It does not offer you a job.
       </p>

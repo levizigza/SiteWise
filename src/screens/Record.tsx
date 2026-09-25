@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SceneArt } from "../components/WordPicture";
 import { jurisdictionLabel } from "../content/framework";
 import { COURSE_VERSION, MODULE_VERSIONS } from "../content/campaign";
 import { RECORD_DISCLAIMER, RECORD_TITLE, recordId } from "../content/record";
@@ -28,6 +29,7 @@ export function RecordPage() {
     <div className="stack">
       <p className="kicker">Step 19 · Skills passport</p>
       <h2>{RECORD_TITLE}</h2>
+      <SceneArt id="passport" />
       <p>
         This record is the construction stream’s skills passport. It lists the modules finished in this program. It is the recognition step on the journey. It is not a government certificate, a WHMIS sign-off, or permission to do a task.
       </p>
