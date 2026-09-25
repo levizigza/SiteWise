@@ -26,6 +26,8 @@ const HOW: Record<string, string> = {
     "Tap the five controls from the one you consider first to the one you consider last. Then answer the dust questions. Higher controls are preferred when they are actually possible.",
   "ppe-locker":
     "Read the job. Tap every piece of gear that job needs. Press Ready for the job. The page tells you what is missing or wrong. Fix it and check again.",
+  "tool-guide":
+    "Open each type. Read what it is and which tools on a site belong to it. Open every type to finish. This page does not authorize you to use a tool.",
   inspect:
     "Look at each tool. Mark it sound or a defect. After the bench is sorted, choose what to do with the damaged cord.",
   ladder:
@@ -59,6 +61,7 @@ export function describeBlock(block: Block): { name: string; kind: StepKind; how
   if (block.type === "hazard-hunt") return { name: block.title, kind: "Game", how: HOW["hazard-hunt"] };
   if (block.type === "hierarchy") return { name: "Hierarchy of controls", kind: "Game", how: HOW.hierarchy };
   if (block.type === "ppe-locker") return { name: "PPE locker", kind: "Game", how: HOW["ppe-locker"] };
+  if (block.type === "tool-guide") return { name: "Types of tools", kind: "Game", how: HOW["tool-guide"] };
   if (block.type === "inspect") return { name: "Tool Check", kind: "Game", how: HOW.inspect };
   if (block.type === "ladder") return { name: "Don't Miss a Step", kind: "Game", how: HOW.ladder };
   if (block.type === "symbols") return { name: "WHMIS symbols", kind: "Game", how: HOW.symbols };

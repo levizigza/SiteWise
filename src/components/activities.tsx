@@ -19,6 +19,7 @@ import type {
   ShiftBlock,
   SymbolBlock,
   SdsBlock,
+  ToolGuideBlock,
 } from "../content/model";
 import { DIMENSIONS } from "../content/framework";
 import { getModule } from "../content/catalog";
@@ -834,6 +835,65 @@ export function LadderView({
   );
 }
 
+export function ToolGuideView({
+  block,
+  onReady,
+}: {
+  block: ToolGuideBlock;
+  onReady: (ready: boolean) => void;
+}) {
+  const [open, setOpen] = useState<string | null>(null);
+  const [seen, setSeen] = useState<string[]>([]);
+  const card = block.types.find((item) => item.id === open);
+
+  useEffect(() => {
+    onReady(seen.length === block.types.length);
+  }, [seen.length, block.types.length, onReady]);
+
+  function show(id: string) {
+    setOpen(id);
+    setSeen((current) => (current.includes(id) ? current : [...current, id]));
+  }
+
+  return (
+    <div className="stack">
+      <h3>{block.title}</h3>
+      <p>{block.intro}</p>
+      <p className="faint">
+        Opened {seen.length} of {block.types.length}. Open every type.
+      </p>
+      <div className="tool-types">
+        {block.types.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={item.id === open ? "tool-type on" : "tool-type"}
+            aria-pressed={item.id === open}
+            onClick={() => show(item.id)}
+          >
+            <strong>{item.name}</strong>
+            {seen.includes(item.id) ? <span className="faint">Read</span> : <span className="faint">Open</span>}
+          </button>
+        ))}
+      </div>
+      {card && (
+        <article className="panel stack" aria-live="polite">
+          <h3>{card.name}</h3>
+          <p>{card.what}</p>
+          <p>
+            <strong>On a site: </strong>
+            {card.examples}
+          </p>
+          <p>
+            <strong>Before you pick one up: </strong>
+            {card.note}
+          </p>
+        </article>
+      )}
+    </div>
+  );
+}
+
 export function SymbolView({
   block,
   onReady,
@@ -1539,6 +1599,7 @@ export function BlockView({
     return <HierarchyView title={block.title} intro={block.intro} onAnswer={onAnswer} onReady={onReady} />;
   }
   if (block.type === "ppe-locker") return <PpeView block={block} onAnswer={onAnswer} onReady={onReady} />;
+  if (block.type === "tool-guide") return <ToolGuideView block={block} onReady={onReady} />;
   if (block.type === "inspect") return <InspectView block={block} onAnswer={onAnswer} onReady={onReady} />;
   if (block.type === "ladder") return <LadderView block={block} onAnswer={onAnswer} onReady={onReady} />;
   if (block.type === "symbols") return <SymbolView block={block} onReady={onReady} />;

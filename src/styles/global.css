@@ -498,6 +498,12 @@ p { margin: 0; }
 }
 .picto svg { transform: rotate(-45deg); width: 36px; height: 36px; }
 .symbol-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.tool-types { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.tool-type {
+  background: var(--bg-raise); border: 1px solid var(--line); border-radius: 14px;
+  padding: 14px; text-align: left; display: grid; gap: 6px;
+}
+.tool-type.on { border-color: var(--amber); background: var(--wash-amber); }
 .symbol-card { background: var(--bg-raise); border: 1px solid var(--line); border-radius: 14px; padding: 12px; text-align: left; }
 .symbol-card .picto { margin-bottom: 16px; }
 

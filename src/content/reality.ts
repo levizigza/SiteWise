@@ -19,7 +19,7 @@ export const REALITY_BY_MODULE: Record<string, { teaches: string; site: string }
     site: "The control on a real task can be set by the province, the employer, and the site plan.",
   },
   tools: {
-    teaches: "How to take a damaged tool out of service.",
+    teaches: "How to name the types of tools on a site, and how to take a damaged tool out of service.",
     site: "Your employer decides who may use a tool and how a lockout is done. This game does not authorize the tool.",
   },
   falls: {

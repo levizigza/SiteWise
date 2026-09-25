@@ -73,6 +73,7 @@ export type Block =
   | HazardHuntBlock
   | HierarchyBlock
   | PpeLockerBlock
+  | ToolGuideBlock
   | InspectBlock
   | LadderBlock
   | SymbolBlock
@@ -161,6 +162,21 @@ export interface PpeLockerBlock extends BlockBase {
   intro: string;
   items: PpeItem[];
   jobs: PpeJob[];
+}
+
+export interface ToolTypeCard {
+  id: string;
+  name: string;
+  what: string;
+  examples: string;
+  note: string;
+}
+
+export interface ToolGuideBlock extends BlockBase {
+  type: "tool-guide";
+  title: string;
+  intro: string;
+  types: ToolTypeCard[];
 }
 
 export interface InspectTarget {
