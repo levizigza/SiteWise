@@ -6,6 +6,17 @@ import { HowItWorks, LoadingScreen, OnboardingScreen, SettingsScreen, TitleScree
 import { SoundToggle } from "./components/SoundToggle";
 import { AdminScreen, SignInScreen } from "./screens/Admin";
 import { BadgesPage, BossPage, Dashboard, GamesPage, Missions, Profile, ProgressPage, Resources, TrainingMap } from "./screens/Hub";
+import {
+  BaselinePage,
+  ComputerPage,
+  CoursePage,
+  EmploymentPage,
+  ExamPage,
+  InstructorPage,
+  JourneyPage,
+  SiteLogPage,
+  VocabularyPage,
+} from "./screens/Curriculum";
 import { RecordPage } from "./screens/Record";
 import { CheckPage, DecisionsPage, HuntPage, LockerPage, RadioPage, SitePage, ToolboxPage, WhmisLabPage } from "./screens/Yard";
 import { useProgress } from "./state/progress";
@@ -17,6 +28,15 @@ function CrewRoutes() {
     <Routes>
       <Route element={<Shell />}>
         <Route path="/home" element={<Dashboard />} />
+        <Route path="/journey" element={<JourneyPage />} />
+        <Route path="/vocabulary" element={<VocabularyPage />} />
+        <Route path="/baseline" element={<BaselinePage />} />
+        <Route path="/computer" element={<ComputerPage />} />
+        <Route path="/course" element={<CoursePage />} />
+        <Route path="/exam" element={<ExamPage />} />
+        <Route path="/sitelog" element={<SiteLogPage />} />
+        <Route path="/employment" element={<EmploymentPage />} />
+        <Route path="/instructor" element={<InstructorPage />} />
         <Route path="/boss/:bossId" element={<BossPage />} />
         <Route path="/site" element={<SitePage />} />
         <Route path="/locker" element={<LockerPage />} />

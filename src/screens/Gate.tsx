@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { DISCLAIMER, JURISDICTIONS, jurisdictionPickerDetail, LOADING_LINES, PHASES, PRODUCT, ROLES, TRAINING_TYPES } from "../content/framework";
 import { TRADES, type Trade } from "../content/trades";
+import { LANGUAGES, PATHWAYS, type LanguageId, type PathwayId } from "../content/curriculum";
 import { XP_ROWS } from "../content/framework";
 import type { JurisdictionCode, Role } from "../content/model";
 import { useProgress } from "../state/progress";
@@ -148,9 +149,10 @@ function HeroArt() {
 }
 
 export function TitleScreen({ onEnter }: { onEnter: () => void }) {
-  const { state } = useProgress();
+  const { state, setLanguage } = useProgress();
   const navigate = useNavigate();
   const hasProgress = state.onboarded;
+  const language = LANGUAGES.find((item) => item.id === state.curriculum.language);
   function enter(path: string) {
     if (state.settings.sound !== false) startYardSound();
     onEnter();
@@ -167,8 +169,31 @@ export function TitleScreen({ onEnter }: { onEnter: () => void }) {
           </div>
           <h2 style={{ fontSize: "clamp(1.4rem, 3vw, 2rem)" }}>{PRODUCT.subtitle}</h2>
           <p className="muted">
+            {PRODUCT.promise} {PRODUCT.platform} This application delivers the construction stream: workplace language, safety, tools, and a skills passport. Logistics and Community Support share that start.
+          </p>
+          <p className="muted">
             General Canadian information, with Alberta-specific information labelled when it applies. A lesson opens for your province only when it is written for that province.
           </p>
+          <div className="stack">
+            <p className="kicker">Supplementary language</p>
+            <p className="muted">
+              Choose the language that sits beside English in the early units. English stays the language of the yard.
+              {language ? ` Selected: ${language.name}.` : ""}
+            </p>
+            <div className="row" role="group" aria-label="Supplementary language">
+              {LANGUAGES.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={state.curriculum.language === item.id ? "btn btn-primary" : "btn btn-ghost"}
+                  aria-pressed={state.curriculum.language === item.id}
+                  onClick={() => setLanguage(item.id)}
+                >
+                  {item.name}
+                </button>
+              ))}
+            </div>
+          </div>
           <ul className="title-tools">
             {(
               [
@@ -222,24 +247,41 @@ export function OnboardingScreen() {
   const [role, setRole] = useState<Role | null>(progress.state.role);
   const [trade, setTrade] = useState<Trade | null>(progress.state.trade);
   const [province, setProvince] = useState<JurisdictionCode | null>(progress.state.jurisdiction);
+  const [pathway, setPathway] = useState<PathwayId | null>(progress.state.curriculum.pathway);
+  const [language, setLanguage] = useState<LanguageId | null>(progress.state.curriculum.language);
 
   return (
     <div className="standalone">
       <div className="title-copy stack" style={{ maxWidth: 860 }}>
-        <p className="kicker">Step {step + 1} of 4</p>
+        <p className="kicker">Step {step + 1} of 6</p>
         {step === 0 && (
           <>
-            <h2>Welcome to the Site.</h2>
-            <p>You’ve just joined a construction crew.</p>
+            <h2>Welcome to Purpose Academy.</h2>
+            <p>One platform. Three pathways. This application is the construction stream.</p>
             <p>
-              You’ll learn how to navigate the site, identify hazards, use PPE, understand WHMIS, communicate with your crew, and respond when something goes wrong.
+              You’ll register, choose a supplementary language, name the tools, and then learn the yard: hazards, PPE, WHMIS, and what to do when something goes wrong.
             </p>
             <p className="muted">
-              Northline Yard is fictional. The lessons are general education, not your employer’s orientation. Your first week is on the home screen. Games stays open if you want to jump ahead.
+              Northline Yard is fictional. The lessons are general education, not your employer’s orientation, and not a job placement. Your first week stays on the home screen. The 20-step journey stays open if you want the whole path.
             </p>
           </>
         )}
         {step === 1 && (
+          <>
+            <h2>Which pathway interests you?</h2>
+            <p>Construction is the stream this application teaches. Logistics and Community Support use the same registration and language start. Interest is not a job offer.</p>
+            <div className="grid-2">
+              {PATHWAYS.map((item) => (
+                <button key={item.id} type="button" className={pathway === item.id ? "select-card on" : "select-card"} onClick={() => setPathway(item.id)}>
+                  {item.title}
+                  <small>{item.motto}</small>
+                  <small>{item.body}</small>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+        {step === 2 && (
           <>
             <h2>What describes you?</h2>
             <p>This tailors examples. It does not decide which certificates the law requires.</p>
@@ -253,7 +295,7 @@ export function OnboardingScreen() {
             </div>
           </>
         )}
-        {step === 2 && (
+        {step === 3 && (
           <>
             <h2>What type of construction work are you interested in?</h2>
             <p>This changes which calls you see more of. It does not certify the trade, and it does not replace a ticket.</p>
@@ -267,7 +309,7 @@ export function OnboardingScreen() {
             </div>
           </>
         )}
-        {step === 3 && (
+        {step === 4 && (
           <>
             <h2>What province are you working in?</h2>
             <p>This chooses which labelled lessons you see. It does not change the law, and it does not certify you.</p>
@@ -287,30 +329,50 @@ export function OnboardingScreen() {
             <div className="disclaimer">{DISCLAIMER}</div>
           </>
         )}
+        {step === 5 && (
+          <>
+            <h2>Which supplementary language should appear in the early units?</h2>
+            <p>English stays the language of the yard. The language you choose sits beside it until the English-only units. Spanish, French, Arabic, Hindi, Amharic, and Tigrinya are the program list.</p>
+            <div className="grid-2">
+              {LANGUAGES.map((item) => (
+                <button key={item.id} type="button" className={language === item.id ? "select-card on" : "select-card"} onClick={() => setLanguage(item.id)}>
+                  {item.name}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
         <div className="row">
           {step > 0 && (
             <button type="button" className="btn btn-ghost" onClick={() => setStep((value) => value - 1)}>
               Back
             </button>
           )}
-          {step < 3 && (
-            <button type="button" className="btn btn-primary" disabled={(step === 1 && !role) || (step === 2 && !trade)} onClick={() => setStep((value) => value + 1)}>
-              Continue
-            </button>
-          )}
-          {step === 3 && (
+          {step < 5 && (
             <button
               type="button"
               className="btn btn-primary"
-              disabled={!role || !trade || !province}
+              disabled={(step === 1 && !pathway) || (step === 2 && !role) || (step === 3 && !trade) || (step === 4 && !province)}
+              onClick={() => setStep((value) => value + 1)}
+            >
+              Continue
+            </button>
+          )}
+          {step === 5 && (
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={!role || !trade || !province || !pathway || !language}
               onClick={() => {
-                if (!role || !trade || !province) return;
+                if (!role || !trade || !province || !pathway || !language) return;
                 progress.setProfile(role, province);
                 progress.setTrade(trade);
-                navigate("/home");
+                progress.setPathway(pathway);
+                progress.setLanguage(language);
+                navigate("/journey");
               }}
             >
-              Enter the site
+              Open the journey
             </button>
           )}
           <Link className="btn btn-text" to="/">
@@ -328,9 +390,13 @@ export function HowItWorks() {
       <div className="title-copy stack" style={{ maxWidth: 860 }}>
         <p className="kicker">{PRODUCT.name}</p>
         <h2>How it works</h2>
+        <p>{PRODUCT.promise} {PRODUCT.platform}</p>
         <p>{PRODUCT.subtitle}</p>
         <p>
-          Every subject follows the same path. The mechanic changes. A quiz is not the whole module. Once you are in, Games lists every activity by name, and Play opens that activity directly.
+          The construction journey is twenty steps: sign in, register, a baseline, a pathway, a supplementary language, vocabulary, workplace instructions, computer skills, safety, tools and materials, practice, a yard log, an exam, a skills passport, and an employment list you can say out loud. Logistics and Community Support use the same start. Their course units are the next streams.
+        </p>
+        <p>
+          Every safety subject still follows the same path. The mechanic changes. A quiz is not the whole module. Once you are in, Games lists every activity by name, and Play opens that activity directly.
         </p>
         <div className="grid-2">
           {PHASES.map((phase) => (

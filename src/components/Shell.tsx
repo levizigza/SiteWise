@@ -5,6 +5,7 @@ import { WorksiteLoad } from "../screens/Gate";
 
 const DESKTOP = [
   ["Home", "/home"],
+  ["Journey", "/journey"],
   ["Site", "/site"],
   ["Locker", "/locker"],
   ["Games", "/games"],
@@ -20,8 +21,8 @@ const DESKTOP = [
 
 const MOBILE = [
   ["Home", "/home"],
-  ["Site", "/site"],
-  ["Locker", "/locker"],
+  ["Journey", "/journey"],
+  ["Training", "/training"],
   ["Progress", "/progress"],
   ["Profile", "/profile"],
 ] as const;

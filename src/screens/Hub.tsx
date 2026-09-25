@@ -40,6 +40,8 @@ import {
   useProgress,
 } from "../state/progress";
 import { SettingsScreen } from "./Gate";
+import { LANGUAGES, PATHWAYS, type LanguageId, type PathwayId } from "../content/curriculum";
+import { ProgressBands, useCurriculumSnap } from "./Curriculum";
 
 export function GamesPage() {
   const { modules } = useContent();
@@ -152,9 +154,26 @@ export function Dashboard() {
     const review = state.reviews[check.id];
     return !review || review.due <= Date.now();
   });
+  const snap = useCurriculumSnap();
+  const pathway = PATHWAYS.find((item) => item.id === snap.pathway);
   return (
     <div className="stack">
-      <p className="kicker">Construction Academy</p>
+      <p className="kicker">Purpose Academy · {pathway?.title ?? "Construction"} stream</p>
+      <h2>Learn today. Build tomorrow.</h2>
+      <p>
+        {pathway ? pathway.motto : "Build skills. Build futures."} The 20-step journey is the path. The week below is the construction yard.
+        {pathway && !pathway.delivered ? " Your interest is recorded. This application still opens the construction course, which is the stream that is built." : ""}
+      </p>
+      <ProgressBands snap={snap} />
+      <p className="faint">Learn · Practice · Improve · Achieve</p>
+      <div className="row">
+        <Link className="btn btn-primary" to="/journey">
+          Open the journey
+        </Link>
+        <Link className="btn btn-ghost" to="/course">
+          Construction course
+        </Link>
+      </div>
       <h2>Day {day}</h2>
       <p>Your first shift starts at 08:00.</p>
       <div className="yard-banner">
@@ -450,11 +469,37 @@ export function Resources() {
 }
 
 export function Profile() {
-  const { state, setJurisdiction, setRole, setTrade } = useProgress();
+  const { state, setJurisdiction, setRole, setTrade, setPathway, setLanguage } = useProgress();
   return (
     <div className="stack">
       <h2>Profile</h2>
-      <p>Role and province choose which labelled lessons you see. They do not assign legal requirements.</p>
+      <p>Role and province choose which labelled lessons you see. Pathway and language follow the Purpose Academy journey. They do not assign legal requirements or a job.</p>
+      <label className="field">
+        Pathway
+        <select
+          value={state.curriculum.pathway ?? "construction"}
+          onChange={(event) => setPathway(event.target.value as PathwayId)}
+        >
+          {PATHWAYS.map((pathway) => (
+            <option key={pathway.id} value={pathway.id}>
+              {pathway.title}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="field">
+        Supplementary language
+        <select
+          value={state.curriculum.language ?? "es"}
+          onChange={(event) => setLanguage(event.target.value as LanguageId)}
+        >
+          {LANGUAGES.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.name}
+            </option>
+          ))}
+        </select>
+      </label>
       <label className="field">
         What describes you?
         <select value={state.role ?? "new"} onChange={(event) => setRole(event.target.value as Role)}>

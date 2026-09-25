@@ -5,6 +5,8 @@ export const PRODUCT = {
   name: "SITEWISE",
   subtitle: "Learn the Site. Know the Hazards. Work Smart.",
   line: "Purpose Academy Training",
+  promise: "Learn today. Build tomorrow.",
+  platform: "One platform. Three pathways. Real opportunities.",
 } as const;
 
 export const DISCLAIMER =

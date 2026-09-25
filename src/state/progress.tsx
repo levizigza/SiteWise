@@ -14,6 +14,7 @@ import { readJurisdiction, type JurisdictionCode } from "../content/jurisdiction
 import type { AnswerEvent, Role, ScoreDimension, XpKind } from "../content/model";
 import { TRADES, type Trade } from "../content/trades";
 import { DAY_MS } from "../content/checks";
+import type { LanguageId, PathwayId, VocabStage } from "../content/curriculum";
 
 const KEY = "sitewise.v1";
 
@@ -42,6 +43,74 @@ export interface ReviewSave {
   misses: number;
 }
 
+export interface VocabMark {
+  visual?: boolean;
+  supported?: boolean;
+  english?: boolean;
+}
+
+export interface SiteLogEntry {
+  at: string;
+  task: string;
+  note: string;
+}
+
+export interface CurriculumSave {
+  pathway: PathwayId | null;
+  language: LanguageId | null;
+  baseline: string[];
+  vocab: Record<string, VocabMark>;
+  sentences: string[];
+  computer: string[];
+  units: string[];
+  exam: string[];
+  logs: SiteLogEntry[];
+}
+
+export const emptyCurriculum = (): CurriculumSave => ({
+  pathway: null,
+  language: null,
+  baseline: [],
+  vocab: {},
+  sentences: [],
+  computer: [],
+  units: [],
+  exam: [],
+  logs: [],
+});
+
+function readIdList(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
+}
+
+function readCurriculum(value: unknown): CurriculumSave {
+  const blank = emptyCurriculum();
+  if (!value || typeof value !== "object") return blank;
+  const raw = value as Partial<CurriculumSave>;
+  const pathway = raw.pathway === "construction" || raw.pathway === "logistics" || raw.pathway === "community" ? raw.pathway : null;
+  const language =
+    raw.language === "es" || raw.language === "fr" || raw.language === "ar" || raw.language === "hi" || raw.language === "am" || raw.language === "ti"
+      ? raw.language
+      : null;
+  const logs = Array.isArray(raw.logs)
+    ? raw.logs.filter(
+        (item): item is SiteLogEntry =>
+          Boolean(item) && typeof item.at === "string" && typeof item.task === "string" && typeof item.note === "string",
+      )
+    : [];
+  return {
+    pathway,
+    language,
+    baseline: readIdList(raw.baseline),
+    vocab: raw.vocab && typeof raw.vocab === "object" ? raw.vocab : {},
+    sentences: readIdList(raw.sentences),
+    computer: readIdList(raw.computer),
+    units: readIdList(raw.units),
+    exam: readIdList(raw.exam),
+    logs,
+  };
+}
+
 export interface Settings {
   textScale: "default" | "large";
   reducedMotion: boolean;
@@ -63,6 +132,7 @@ export interface SaveState {
   trade: Trade | null;
   equipped: string[];
   reviews: Record<string, ReviewSave>;
+  curriculum: CurriculumSave;
 }
 
 const defaultSettings: Settings = { textScale: "default", reducedMotion: false, sound: true };
@@ -80,6 +150,7 @@ export const emptySave = (): SaveState => ({
   trade: null,
   equipped: [],
   reviews: {},
+  curriculum: emptyCurriculum(),
 });
 
 function readTrade(value: unknown): Trade | null {
@@ -113,6 +184,7 @@ function load(): SaveState {
       trade: readTrade(parsed.trade),
       equipped: Array.isArray(parsed.equipped) ? parsed.equipped.filter((id) => typeof id === "string") : [],
       reviews: parsed.reviews && typeof parsed.reviews === "object" ? parsed.reviews : {},
+      curriculum: readCurriculum(parsed.curriculum),
     };
   } catch {
     return emptySave();
@@ -198,6 +270,11 @@ interface ProgressApi {
   setJurisdiction: (jurisdiction: JurisdictionCode) => void;
   setRole: (role: Role) => void;
   setTrade: (trade: Trade) => void;
+  setPathway: (pathway: PathwayId) => void;
+  setLanguage: (language: LanguageId) => void;
+  markCurriculum: (bucket: "baseline" | "sentences" | "computer" | "units" | "exam", id: string) => void;
+  markVocab: (id: string, stage: VocabStage) => void;
+  addSiteLog: (task: string, note: string) => void;
   toggleEquip: (id: string) => void;
   answerCheck: (id: string, moduleId: string, prompt: string, correct: boolean, feedback: string, dimension: ScoreDimension) => void;
   updateSettings: (patch: Partial<Settings>) => void;
@@ -234,6 +311,35 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       setJurisdiction: (jurisdiction) => setState((prev) => ({ ...prev, jurisdiction })),
       setRole: (role) => setState((prev) => ({ ...prev, role })),
       setTrade: (trade) => setState((prev) => ({ ...prev, trade })),
+      setPathway: (pathway) =>
+        setState((prev) => ({ ...prev, curriculum: { ...prev.curriculum, pathway } })),
+      setLanguage: (language) =>
+        setState((prev) => ({ ...prev, curriculum: { ...prev.curriculum, language } })),
+      markCurriculum: (bucket, id) =>
+        setState((prev) => {
+          const list = prev.curriculum[bucket];
+          if (list.includes(id)) return prev;
+          return { ...prev, curriculum: { ...prev.curriculum, [bucket]: [...list, id] } };
+        }),
+      markVocab: (id, stage) =>
+        setState((prev) => ({
+          ...prev,
+          curriculum: {
+            ...prev.curriculum,
+            vocab: {
+              ...prev.curriculum.vocab,
+              [id]: { ...prev.curriculum.vocab[id], [stage]: true },
+            },
+          },
+        })),
+      addSiteLog: (task, note) =>
+        setState((prev) => ({
+          ...prev,
+          curriculum: {
+            ...prev.curriculum,
+            logs: [{ at: new Date().toISOString(), task, note }, ...prev.curriculum.logs].slice(0, 20),
+          },
+        })),
       toggleEquip: (id) =>
         setState((prev) => ({
           ...prev,

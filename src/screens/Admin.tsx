@@ -7,6 +7,7 @@ import { api } from "../lib/api";
 import { useAuth } from "../state/auth";
 import { useContent } from "../state/content";
 import { ContentStudio } from "./Studio";
+import { ADMIN_DUTIES } from "../content/curriculum";
 
 const TABS = ["Users", "Courses", "Modules", "Studio", "Questions", "Scenarios", "Progress", "Analytics", "Versions"] as const;
 
@@ -151,6 +152,18 @@ export function AdminScreen() {
       <p className="kicker">Admin</p>
       <h2>Content desk</h2>
       <p>Signed in as {auth.user.email}. Changes publish to the training path on this machine.</p>
+      <p>
+        The program chart puts management, administration, instructors, assignments, recognition, evaluation, certification, and courses on this desk. Certification here means a completion record. It does not issue a provincial ticket. Logistics and Community Support are the streams this desk is ready to add. The construction course is the one published now.
+      </p>
+      <div className="grid-2">
+        {ADMIN_DUTIES.map((duty) => (
+          <article key={duty.id} className="panel">
+            <h3>{duty.title}</h3>
+            <p>{duty.body}</p>
+          </article>
+        ))}
+      </div>
+      <Link to="/instructor">Open the instructor view</Link>
       <div className="jump" role="tablist" aria-label="Admin sections">
         {TABS.map((item) => (
           <button key={item} type="button" className={tab === item ? "on" : undefined} onClick={() => setTab(item)}>

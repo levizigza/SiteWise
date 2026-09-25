@@ -26,8 +26,11 @@ export function RecordPage() {
 
   return (
     <div className="stack">
-      <p className="kicker">Record</p>
+      <p className="kicker">Step 19 · Skills passport</p>
       <h2>{RECORD_TITLE}</h2>
+      <p>
+        This record is the construction stream’s skills passport. It lists the modules finished in this program. It is the recognition step on the journey. It is not a government certificate, a WHMIS sign-off, or permission to do a task.
+      </p>
       {!complete && <p>Finish every module on the map to complete this record. Progress already stored on this device stays in the record draft below.</p>}
       <article className="panel stack">
         <p>
